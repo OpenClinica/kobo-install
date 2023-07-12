@@ -54,7 +54,7 @@ class Command:
     def build(cls, image=None):
         """
         Builds kpi/kobocat images with `--no-caches` option
-        Pulls latest `kobotoolbox/koboform_base` as well
+        Pulls latest `ahilman/koboform_base` as well
 
         :param image: str
         """
@@ -89,7 +89,7 @@ class Command:
             if image is None or image == 'kc':
                 pull_base_command = ['docker',
                                      'pull',
-                                     'kobotoolbox/koboform_base']
+                                     'ahilman/koboform_base']
 
                 CLI.run_command(pull_base_command, dict_['kobodocker_path'])
 

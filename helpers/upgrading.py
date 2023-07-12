@@ -62,7 +62,7 @@ class Upgrading:
         # is non-zero. Currently, `output` combines both stdout and stderr
         kpi_kc_db_empty = output.strip().split('\n')[-1]
 
-        if kpi_kc_db_empty == 'True\tFalse':
+        if kpi_kc_db_empty == 'True\tTrue':
             # KPI empty but KC is not: run the two-database upgrade script
             CLI.colored_print(
                 'Upgrading from single-database setup to separate databases '
