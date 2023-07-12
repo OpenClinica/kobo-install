@@ -263,7 +263,6 @@ class Config(metaclass=Singleton):
         characters = (
             string.ascii_letters
             + string.digits
-            + '!$+-_^~#`~'
         )
 
         return ''.join(choice(characters)
