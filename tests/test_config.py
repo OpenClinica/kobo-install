@@ -176,7 +176,23 @@ def test_aws_validation_fails_with_system_exit():
 
     with patch('helpers.cli.CLI.colored_input') as mock_colored_input:
         mock_colored_input.side_effect = iter(
-            [CHOICE_YES, '', '', '', CHOICE_YES, '', '', '', '', '', '']
+            [
+                CHOICE_YES,  # Yes, Use AWS Storage
+                '',  # Empty Access Key
+                '',  # Empty Secret Key
+                '',  # Empty Bucket Name
+                '',  # Empty Region Name
+                CHOICE_YES,  # Yes, validate AWS credentials
+                '',  # Empty Access Key
+                '',  # Empty Secret Key
+                '',  # Empty Bucket Name
+                '',  # Empty Region Name
+                # it failed, let's try one more time
+                '',  # Empty Access Key
+                '',  # Empty Secret Key
+                '',  # Empty Bucket Name
+                '',  # Empty Region Name
+            ]
         )
         try:
             config._Config__questions_aws()
@@ -189,7 +205,7 @@ def test_aws_invalid_credentials_continue_without_validation():
     config = _aws_validation_setup()
 
     with patch('helpers.cli.CLI.colored_input') as mock_colored_input:
-        mock_colored_input.side_effect = iter([CHOICE_YES,'', '', '', CHOICE_NO])
+        mock_colored_input.side_effect = iter([CHOICE_YES, '', '', '', '', CHOICE_NO])
         config._Config__questions_aws()
         assert not config._Config__dict['aws_credentials_valid']
 
@@ -207,6 +223,7 @@ def test_aws_validation_passes_with_valid_credentials():
                 'test_access_key',
                 'test_secret_key',
                 'test_bucket_name',
+                'test_region_name',
                 CHOICE_NO,
             ]
         )
@@ -223,6 +240,7 @@ def test_aws_validation_passes_with_valid_credentials():
                 'test_access_key',
                 'test_secret_key',
                 'test_bucket_name',
+                'test_region_name',
                 CHOICE_YES,
             ]
         )
@@ -239,10 +257,12 @@ def test_aws_validation_passes_with_valid_credentials():
                 '',
                 '',
                 '',
+                '',
                 CHOICE_YES,
                 'test_access_key',
                 'test_secret_key',
                 'test_bucket_name',
+                'test_region_name',
             ]
         )
         config._Config__questions_aws()
@@ -258,13 +278,16 @@ def test_aws_validation_passes_with_valid_credentials():
                 '',
                 '',
                 '',
+                '',
                 CHOICE_YES,
+                '',
                 '',
                 '',
                 '',
                 'test_access_key',
                 'test_secret_key',
                 'test_bucket_name',
+                'test_region_name',
             ]
         )
         config._Config__questions_aws()
@@ -543,9 +566,9 @@ def test_secure_mongo_advanced_options():
     with patch('helpers.cli.CLI.colored_input') as mock_ci:
         mock_ci.side_effect = iter([
             'root',
-            'root_password',
+            'rootpassword',
             'mongo_kobo_user',
-            'mongo_password',
+            'mongopassword',
         ])
         config._Config__questions_mongo()
         assert not os.path.exists('/tmp/upsert_db_users')
@@ -561,9 +584,9 @@ def test_secure_mongo_advanced_options():
     with patch('helpers.cli.CLI.colored_input') as mock_ci:
         mock_ci.side_effect = iter([
             'root',
-            'root_password',
+            'rootPassword',
             'mongo_kobo_user',
-            'mongo_password',
+            'mongoPassword',
         ])
         config._Config__questions_mongo()
         assert os.path.exists('/tmp/upsert_db_users')
@@ -579,9 +602,9 @@ def test_secure_mongo_advanced_options():
     with patch('helpers.cli.CLI.colored_input') as mock_ci:
         mock_ci.side_effect = iter([
             'root',
-            'root_passw0rd',
+            'rootPassw0rd',
             'kobo_user',
-            'mongo_password',
+            'mongoPassword',
             CHOICE_YES,
         ])
         config._Config__questions_mongo()
@@ -600,9 +623,9 @@ def test_update_mongo_passwords():
         config._Config__dict['mongo_user_username'] = 'user'
         mock_ci.side_effect = iter([
             'root',
-            'root_password',
+            'rootPassword',
             'user',
-            'mongo_password'
+            'mongoPassword'
         ])
         config._Config__questions_mongo()
         assert os.path.exists('/tmp/upsert_db_users')
@@ -620,9 +643,9 @@ def test_update_mongo_usernames():
         config._Config__dict['mongo_user_username'] = 'user'
         mock_ci.side_effect = iter([
             'admin',
-            'root_password',
+            'rootPassword',
             'another_user',
-            'mongo_password',
+            'mongoPassword',
             CHOICE_YES  # Delete users
         ])
         config._Config__questions_mongo()
@@ -653,7 +676,7 @@ def test_update_postgres_password():
             'kobocat',
             'koboform',
             'user',
-            'user_password',
+            'userPassw0rd',
             CHOICE_NO,  # Tweak settings
         ])
         config._Config__questions_postgres()

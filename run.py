@@ -3,16 +3,24 @@
 import platform
 import sys
 
-from helpers.cli import CLI
-if sys.version_info[0] == 2:
+if (
+    sys.version_info[0] == 2
+    or (sys.version_info[0] == 3 and sys.version_info[1] <= 5)
+):
+    # Do not import any classes because they can contain not supported syntax
+    # for older python versions. (i.e. avoid SyntaxError on imports)
     message = (
-        'Python 2.7 has reached the end of its life on '
-        'January 1st, 2020. Please upgrade your Python as Python 2.7 is '
-        'not maintained anymore.'
+        '╔══════════════════════════════════════════════════════╗\n'
+        '║                                                      ║\n'
+        '║ Your Python version has reached the end of its life. ║\n'
+        '║ Please upgrade it as it is not maintained anymore.   ║\n'
+        '║                                                      ║\n'
+        '╚══════════════════════════════════════════════════════╝'
     )
-    CLI.framed_print(message, color=CLI.COLOR_ERROR)
+    print("\033[1;31m" + message + '\033[0;0m')
     sys.exit(1)
 
+from helpers.cli import CLI
 from helpers.command import Command
 from helpers.config import Config
 from helpers.setup import Setup
@@ -34,14 +42,14 @@ def run(force_setup=False):
             dict_ = config.build()
             Setup.clone_kobodocker(config)
             Template.render(config)
-            config.init_letsencrypt()
             Setup.update_hosts(dict_)
         else:
             if config.auto_detect_network():
                 Template.render(config)
                 Setup.update_hosts(dict_)
 
-        Command.start()
+        config.validate_passwords()
+        Command.start(force_setup=force_setup)
 
 
 if __name__ == '__main__':

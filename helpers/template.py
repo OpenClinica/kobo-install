@@ -6,7 +6,6 @@ import re
 import stat
 import sys
 from string import Template as PyTemplate
-from urllib.parse import quote_plus
 
 from helpers.cli import CLI
 from helpers.config import Config
@@ -125,8 +124,8 @@ class Template:
                 os.makedirs(destination_directory)
             except OSError:
                 CLI.colored_print(
-                    'Can not create {}. '
-                    'Please verify permissions!'.format(destination_directory),
+                    f'Can not create {destination_directory}. '
+                    'Please verify permissions!',
                     CLI.COLOR_ERROR)
                 sys.exit(1)
 
@@ -163,6 +162,7 @@ class Template:
             'AWS_ACCESS_KEY_ID': dict_['aws_access_key'],
             'AWS_SECRET_ACCESS_KEY': dict_['aws_secret_key'],
             'AWS_BUCKET_NAME': dict_['aws_bucket_name'],
+            'AWS_S3_REGION_NAME': dict_['aws_s3_region_name'],
             'GOOGLE_UA': dict_['google_ua'],
             'GOOGLE_API_KEY': dict_['google_api_key'],
             'INTERNAL_DOMAIN_NAME': dict_['internal_domain_name'],
@@ -185,8 +185,6 @@ class Template:
             'KPI_POSTGRES_DB': dict_['kpi_postgres_db'],
             'POSTGRES_USER': dict_['postgres_user'],
             'POSTGRES_PASSWORD': dict_['postgres_password'],
-            'POSTGRES_PASSWORD_URL_ENCODED': quote_plus(
-                dict_['postgres_password']),
             'DEBUG': dict_['debug'],
             'SMTP_HOST': dict_['smtp_host'],
             'SMTP_PORT': dict_['smtp_port'],
@@ -211,7 +209,13 @@ class Template:
             'NGINX_PUBLIC_PORT': dict_['exposed_nginx_docker_port'],
             'NGINX_EXPOSED_PORT': nginx_port,
             'UWSGI_WORKERS_MAX': dict_['uwsgi_workers_max'],
-            'UWSGI_WORKERS_START': dict_['uwsgi_workers_start'],
+            # Deactivate cheaper algorithm if defaults are 1 worker to start and
+            # 2 maximum.
+            'UWSGI_WORKERS_START': (
+                ''
+                if dict_['uwsgi_workers_start'] == '1' and dict_['uwsgi_workers_max'] == '2'
+                else dict_['uwsgi_workers_start']
+            ),
             'UWSGI_MAX_REQUESTS': dict_['uwsgi_max_requests'],
             'UWSGI_SOFT_LIMIT': int(
                 dict_['uwsgi_soft_limit']) * 1024 * 1024,
@@ -273,7 +277,8 @@ class Template:
             'MAINTENANCE_EMAIL': dict_['maintenance_email'],
             'USE_NPM_FROM_HOST': '' if (config.dev_mode and
                                         not dict_['npm_container']) else '#',
-            'DOCKER_PREFIX': config.get_prefix('backend'),
+            'DOCKER_NETWORK_BACKEND_PREFIX': config.get_prefix('backend'),
+            'DOCKER_NETWORK_FRONTEND_PREFIX': config.get_prefix('frontend'),
             'USE_BACKEND_NETWORK': _get_value('expose_backend_ports',
                                               comparison_value=False),
             'EXPOSE_BACKEND_PORTS': _get_value('expose_backend_ports'),
@@ -289,8 +294,6 @@ class Template:
             'MONGO_USER_USERNAME': dict_['mongo_user_username'],
             'MONGO_USER_PASSWORD': dict_['mongo_user_password'],
             'REDIS_PASSWORD': dict_['redis_password'],
-            'REDIS_PASSWORD_URL_ENCODED': quote_plus(
-                dict_['redis_password']),
             'REDIS_PASSWORD_JS_ENCODED': json.dumps(
                 dict_['redis_password']),
             'USE_DEV_MODE': _get_value('dev_mode'),
@@ -306,6 +309,12 @@ class Template:
                 true_value='#',
                 false_value='',
                 comparison_value='',
+            ),
+            'USE_LETSENSCRYPT': '#' if config.use_letsencrypt else '',
+            'USE_SERVICE_ACCOUNT_WHITELISTED_HOSTS': (
+                '#'
+                if config.local_install
+                else _get_value('service_account_whitelisted_hosts')
             ),
         }
 

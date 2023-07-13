@@ -7,9 +7,9 @@ setup(
     version=Config.KOBO_INSTALL_VERSION,
     # Include all the python modules except `tests`,
     packages=find_packages(exclude=['tests']),
-    url='https://github.com/kobotoolbox/kobo-install/',
+    url='https://github.com/gushil/kobo-install/',
     license='',
-    author='KoBoToolbox',
+    author='KoboToolbox',
     author_email='',
-    description='Installer for KoBoToolbox'
+    description='Installer for KoboToolbox'
 )

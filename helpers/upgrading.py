@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import subprocess
 import sys
+from shutil import which
 
 from helpers.cli import CLI
+from helpers.utils import run_docker_compose
 
 
 class Upgrading:
 
     @staticmethod
-    def migrate_single_to_two_databases(config):
+    def migrate_single_to_two_databases(config: 'helpers.Config'):
         """
         Check the contents of the databases. If KPI's is empty or doesn't exist
         while KoBoCAT's has user data, then we are migrating from a
@@ -26,16 +30,14 @@ class Upgrading:
             https://github.com/kobotoolbox/kobo-docker/issues/264.
             """
             set_env = 'DATABASE_URL="${KPI_DATABASE_URL}"'
-            return [
-                'bash', '-c',
-                '{} {}'.format(set_env, command)
-            ]
+            return ['bash', '-c', f'{set_env} {command}']
 
-        kpi_run_command = ['docker-compose',
-                           '-f', 'docker-compose.frontend.yml',
-                           '-f', 'docker-compose.frontend.override.yml',
-                           '-p', config.get_prefix('frontend'),
-                           'run', '--rm', 'kpi']
+        kpi_run_command = run_docker_compose(dict_, [
+           '-f', 'docker-compose.frontend.yml',
+           '-f', 'docker-compose.frontend.override.yml',
+           '-p', config.get_prefix('frontend'),
+           'run', '--rm', 'kpi'
+        ])
 
         # Make sure Postgres is running
         # We add this message to users because when AWS backups are activated,
@@ -99,17 +101,14 @@ class Upgrading:
             if response is False:
                 sys.exit(0)
 
-            backend_command = [
-                'docker-compose',
-                '-f',
-                'docker-compose.backend.{}.yml'.format(backend_role),
-                '-f',
-                'docker-compose.backend.{}.override.yml'.format(backend_role),
+            backend_command = run_docker_compose(dict_, [
+                '-f', f'docker-compose.backend.{backend_role}.yml',
+                '-f', f'docker-compose.backend.{backend_role}.override.yml',
                 '-p', config.get_prefix('backend'),
                 'exec', 'postgres', 'bash',
                 '/kobo-docker-scripts/primary/clone_data_from_kc_to_kpi.sh',
                 '--noinput'
-            ]
+            ])
             try:
                 subprocess.check_call(
                     backend_command, cwd=dict_['kobodocker_path']
@@ -129,7 +128,7 @@ class Upgrading:
             sys.exit(1)
 
     @staticmethod
-    def new_terminology(upgraded_dict):
+    def new_terminology(upgraded_dict: dict) -> dict:
         """
         Updates configuration to use new `kobo-docker` terminology.
         See: https://github.com/kobotoolbox/kobo-docker/pull/294
@@ -149,7 +148,19 @@ class Upgrading:
         return upgraded_dict
 
     @staticmethod
-    def two_databases(upgraded_dict, current_dict):
+    def set_compose_version(upgraded_dict: dict) -> dict:
+
+        if 'compose_version' not in upgraded_dict:
+            # FIXME On macOS, Docker Desktop always installs a symlink for
+            #   `docker-compose`. Version will be always detected as v1 even if
+            #   user has chosen v2 in Docker Desktop preferences.
+            compose_version = 'v2' if which('docker-compose') is None else 'v1'
+            upgraded_dict['compose_version'] = compose_version
+
+        return upgraded_dict
+
+    @staticmethod
+    def two_databases(upgraded_dict: dict, current_dict: dict) -> dict:
         """
         If the configuration came from a previous version that had a single
         Postgres database, we need to make sure the new `kc_postgres_db` is
@@ -185,7 +196,7 @@ class Upgrading:
         return upgraded_dict
 
     @staticmethod
-    def use_booleans(upgraded_dict):
+    def use_booleans(upgraded_dict: dict) -> dict:
         """
         Until version 3.x, two constants (`Config.TRUE` and `Config.FALSE`) were
         used to store "Yes/No"  users' responses. It made the code more
