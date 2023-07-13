@@ -88,46 +88,28 @@ class Setup:
 
         # fetch new tags and prune
         git_command = ['git', 'fetch', '-p']
-        CLI.colored_print(
-            'command {}'.format(git_command),
-            CLI.COLOR_INFO)
         CLI.run_command(git_command, cwd=dict_['kobodocker_path'])
 
         # checkout branch
         git_command = ['git', 'checkout', '--force', Config.KOBO_DOCKER_BRANCH]
-        CLI.colored_print(
-            'command {}'.format(git_command),
-            CLI.COLOR_INFO)
         CLI.run_command(git_command, cwd=dict_['kobodocker_path'])
 
         # update code
         git_command = ['git', 'pull', 'origin', Config.KOBO_DOCKER_BRANCH]
-        CLI.colored_print(
-            'command {}'.format(git_command),
-            CLI.COLOR_INFO)
         CLI.run_command(git_command, cwd=dict_['kobodocker_path'])
 
     @staticmethod
     def update_koboinstall(version):
         # fetch new tags and prune
         git_fetch_prune_command = ['git', 'fetch', '-p']
-        CLI.colored_print(
-            'command {}'.format(git_fetch_prune_command),
-            CLI.COLOR_INFO)
         CLI.run_command(git_fetch_prune_command)
 
         # checkout branch
         git_command = ['git', 'checkout', '--force', version]
-        CLI.colored_print(
-            'command {}'.format(git_command),
-            CLI.COLOR_INFO)
         CLI.run_command(git_command)
 
         # update code
         git_command = ['git', 'pull', 'origin', version]
-        CLI.colored_print(
-            'command {}'.format(git_command),
-            CLI.COLOR_INFO)
         CLI.run_command(git_command)
 
     @classmethod
