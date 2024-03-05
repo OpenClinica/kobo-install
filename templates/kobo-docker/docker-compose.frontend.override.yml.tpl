@@ -37,6 +37,8 @@ services:
   ${USE_KPI_DEV_MODE}  image: kpi:dev.${KPI_DEV_BUILD_ID}
   ${USE_KPI_DEV_MODE}  volumes:
   ${USE_KPI_DEV_MODE}    - ${KPI_PATH}:/srv/src/kpi
+    env_file:
+      - ../fd-configuration/kpi.txt
     environment:
       - KPI_UWSGI_WORKERS_COUNT=${UWSGI_WORKERS_MAX}
       - KPI_UWSGI_CHEAPER_WORKERS_COUNT=${UWSGI_WORKERS_START}
@@ -64,6 +66,8 @@ services:
     ${USE_BACKEND_NETWORK}      - kpi.docker.container
 
   nginx:
+    env_file:
+      - ../fd-configuration/kpi.txt
     environment:
       - NGINX_PUBLIC_PORT=${NGINX_PUBLIC_PORT}
       - UWSGI_PASS_TIMEOUT=${UWSGI_PASS_TIMEOUT}
